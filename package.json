@@ -1,0 +1,14 @@
+{
+  "name": "tp-jira-report",
+  "version": "1.0.0",
+  "description": "TradeAlgo Product daily Jira report generator",
+  "scripts": {
+    "generate": "node scripts/generate-report.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -3,525 +3,378 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TradeAlgo Product Progress Report API</title>
+  <title>TradeAlgo Product · Daily Report</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1a1a2e; background: #f8f9fa; line-height: 1.6; padding: 2rem; max-width: 960px; margin: 0 auto; }
-    h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
-    h2 { font-size: 1.3rem; margin: 2rem 0 0.75rem; color: #16213e; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.4rem; }
-    h3 { font-size: 1.05rem; margin: 1.2rem 0 0.5rem; color: #334155; }
-    p, li { font-size: 0.95rem; margin-bottom: 0.5rem; }
-    ul { padding-left: 1.5rem; margin-bottom: 0.5rem; }
-    .subtitle { color: #64748b; font-size: 1rem; margin-bottom: 2rem; }
-    .badge { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 0.15rem 0.55rem; border-radius: 4px; letter-spacing: 0.04em; text-transform: uppercase; vertical-align: middle; margin-left: 0.5rem; }
-    .badge-internal { background: #fef3c7; color: #92400e; }
-    .badge-daily { background: #e0f2fe; color: #075985; }
-    code { background: #e2e8f0; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.88rem; font-family: 'SF Mono', Consolas, monospace; }
-    pre { background: #1e293b; color: #e2e8f0; padding: 1rem 1.2rem; border-radius: 8px; overflow-x: auto; margin: 0.75rem 0 1rem; font-size: 0.82rem; line-height: 1.55; }
-    pre code { background: none; padding: 0; color: inherit; }
-    .key { color: #7dd3fc; }
-    .str { color: #86efac; }
-    .num { color: #fcd34d; }
-    .comment { color: #94a3b8; font-style: italic; }
-    .kw { color: #f9a8d4; }
-    table { width: 100%; border-collapse: collapse; margin: 0.75rem 0 1rem; font-size: 0.9rem; }
-    th, td { text-align: left; padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; }
-    th { background: #f1f5f9; font-weight: 600; }
-    td code { font-size: 0.82rem; }
-    .note { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 0.75rem 1rem; border-radius: 0 6px 6px 0; margin: 1rem 0; font-size: 0.9rem; }
-    .warn { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 0.75rem 1rem; border-radius: 0 6px 6px 0; margin: 1rem 0; font-size: 0.9rem; }
-    .tip { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 0.75rem 1rem; border-radius: 0 6px 6px 0; margin: 1rem 0; font-size: 0.9rem; }
-    .endpoint { display: inline-flex; align-items: center; gap: 0.5rem; background: #1e293b; color: #e2e8f0; padding: 0.5rem 1rem; border-radius: 6px; font-family: 'SF Mono', Consolas, monospace; font-size: 0.85rem; margin: 0.5rem 0 1rem; flex-wrap: wrap; }
-    .method { padding: 0.15rem 0.55rem; border-radius: 4px; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.05em; }
-    .method.get { background: #22c55e; color: #fff; }
-    .method.post { background: #f59e0b; color: #fff; }
-    .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 0.75rem 0 1.5rem; }
-    .module-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem; }
-    .module-card .module-name { font-weight: 600; font-size: 0.9rem; color: #1e293b; margin-bottom: 0.2rem; }
-    .module-card .module-path { font-family: 'SF Mono', Consolas, monospace; font-size: 0.78rem; color: #64748b; margin-bottom: 0.3rem; }
-    .module-card .module-desc { font-size: 0.82rem; color: #475569; }
-    .module-card .module-tag { display: inline-block; font-size: 0.7rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 3px; margin-top: 0.3rem; }
-    .tag-suggested { background: #f0fdf4; color: #166534; }
-    .tag-requested { background: #eff6ff; color: #1e40af; }
-    .null-badge { background: #fee2e2; color: #991b1b; font-size: 0.75rem; padding: 0.1rem 0.4rem; border-radius: 4px; }
-    .step-list { counter-reset: step-counter; list-style: none; padding-left: 0; margin-bottom: 1rem; }
-    .step-list li { counter-increment: step-counter; padding: 0.4rem 0 0.4rem 2.2rem; position: relative; font-size: 0.93rem; border-left: 2px solid #e2e8f0; margin-left: 0.7rem; margin-bottom: 0.2rem; }
-    .step-list li::before { content: counter(step-counter); position: absolute; left: -0.85rem; top: 0.35rem; background: #3b82f6; color: #fff; width: 1.4rem; height: 1.4rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; }
-    .workflow-row { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.6rem 0 1rem; align-items: center; }
-    .wf-chip { background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; font-family: 'SF Mono', Consolas, monospace; font-weight: 500; }
-    .wf-arrow { color: #94a3b8; font-size: 0.75rem; }
-    hr { border: none; border-top: 2px solid #e2e8f0; margin: 1.5rem 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 1.25rem 2rem;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .header-logo {
+      width: 2rem;
+      height: 2rem;
+      background: #3b82f6;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.8rem;
+      letter-spacing: -0.02em;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .header-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+    .header-subtitle {
+      font-size: 0.82rem;
+      color: #94a3b8;
+      margin-top: 0.1rem;
+    }
+    .header-meta {
+      font-size: 0.82rem;
+      color: #64748b;
+      text-align: right;
+    }
+
+    /* Sprint status bar */
+    .sprint-bar {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .sprint-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    .sprint-stats {
+      font-size: 0.82rem;
+      color: #94a3b8;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.65rem;
+      border-radius: 99px;
+    }
+    .status-badge.on-track  { background: #052e16; color: #4ade80; }
+    .status-badge.behind    { background: #450a0a; color: #f87171; }
+    .status-badge.warning   { background: #431407; color: #fb923c; }
+    .status-badge.no-sprint { background: #1e293b; color: #94a3b8; }
+
+    /* ── Date history bar ── */
+    .date-bar-wrap {
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 0.6rem 2rem;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .date-bar {
+      display: inline-flex;
+      gap: 0.4rem;
+    }
+    .date-chip {
+      display: inline-block;
+      padding: 0.3rem 0.75rem;
+      border-radius: 99px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .date-chip:hover { background: #e2e8f0; color: #334155; }
+    .date-chip.active { background: #1e40af; color: #fff; border-color: #1e40af; }
+
+    /* ── Main content ── */
+    .main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+
+    /* ── Module cards ── */
+    .module-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .module-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid #f1f5f9;
+      gap: 0.75rem;
+    }
+    .module-title {
+      font-size: 0.93rem;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .module-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-ok, .dot-on_track            { background: #22c55e; }
+    .dot-warning                       { background: #f59e0b; }
+    .dot-behind, .dot-critical         { background: #ef4444; }
+
+    .module-body {
+      padding: 0.85rem 1.1rem;
+    }
+    .bullet-list {
+      list-style: none;
+      padding: 0;
+    }
+    .bullet-list li {
+      font-size: 0.9rem;
+      color: #334155;
+      padding: 0.3rem 0 0.3rem 1.3rem;
+      position: relative;
+      line-height: 1.5;
+      border-bottom: 1px solid #f8fafc;
+    }
+    .bullet-list li:last-child { border-bottom: none; }
+    .bullet-list li::before {
+      content: '·';
+      position: absolute;
+      left: 0.3rem;
+      color: #94a3b8;
+      font-size: 1.2rem;
+      line-height: 1.2;
+    }
+
+    /* ── Empty / loading states ── */
+    .state-box {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+    .state-box .state-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .state-box .state-title { font-weight: 600; color: #64748b; margin-bottom: 0.25rem; }
+
+    .spec-link {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+    .spec-link a { color: #64748b; text-decoration: none; }
+    .spec-link a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      .header { padding: 1rem; }
+      .date-bar-wrap { padding: 0.5rem 1rem; }
+      .main { padding: 1rem 0.75rem 2rem; }
+    }
   </style>
 </head>
 <body>
 
-<h1>TradeAlgo Product Progress Report API <span class="badge badge-internal">Internal</span> <span class="badge badge-daily">Daily</span></h1>
-<p class="subtitle">Structured end-of-day Jira board intelligence across 7 modules — consumed by the Claude Code agent to generate daily sprint progress narratives for leadership reporting.</p>
-
-<h2>Overview</h2>
-<p>The Daily Jira Report is generated each day at <strong>9:00 PM SGT</strong>. The Claude Code agent queries the Jira REST API directly against the <strong>TradeAlgo Product</strong> board on <code>tsgs.atlassian.net</code>, processes 7 distinct data modules, and produces a structured progress report suitable for boss-level briefings.</p>
-
-<div class="note">
-  <strong>Agent usage:</strong> Claude Code calls the Jira API endpoints listed in this doc, transforms the responses per-module, and assembles the final narrative. Claude.ai is used for planning only — all execution and API calls happen via the agent. Pull after <strong>9:00 PM SGT</strong> to ensure all ticket movements from the full business day are captured.
-</div>
-
-<h2>Workflow Status Order</h2>
-<p>The following is the canonical status progression for the <strong>TradeAlgo Product</strong> board. The agent uses this ordered sequence to determine whether a status transition is a forward progression, a regression, or a lateral move.</p>
-<div class="workflow-row">
-  <span class="wf-chip">To Do</span><span class="wf-arrow">→</span>
-  <span class="wf-chip">Research</span><span class="wf-arrow">→</span>
-  <span class="wf-chip">PRD</span><span class="wf-arrow">→</span>
-  <span class="wf-chip">Mockup</span><span class="wf-arrow">→</span>
-  <span class="wf-chip">Data</span><span class="wf-arrow">→</span>
-  <span class="wf-chip">Design</span><span class="wf-arrow">→</span>
-  <span class="wf-chip">Design Approval</span><span class="wf-arrow">→</span>
-  <span class="wf-chip">Dev</span><span class="wf-arrow">→</span>
-  <span class="wf-chip">LLM</span><span class="wf-arrow">→</span>
-  <span class="wf-chip">QA</span><span class="wf-arrow">→</span>
-  <span class="wf-chip">Staging</span><span class="wf-arrow">→</span>
-  <span class="wf-chip">Prod</span><span class="wf-arrow">→</span>
-  <span class="wf-chip">GTM</span><span class="wf-arrow">→</span>
-  <span class="wf-chip">Done</span>
-</div>
-
-<h2>Authentication</h2>
-<p>All Jira REST API calls use HTTP Basic Authentication with your Atlassian account email and a personal API token. The token must be base64-encoded as <code>email:token</code>.</p>
-
-<h3>Request Headers (all calls)</h3>
-<table>
-  <tr><th>Header</th><th>Value</th></tr>
-  <tr><td><code>Authorization</code></td><td><code>Basic {base64("gicci.goh@attix.com:YOUR_API_TOKEN")}</code></td></tr>
-  <tr><td><code>Content-Type</code></td><td><code>application/json</code></td></tr>
-  <tr><td><code>Accept</code></td><td><code>application/json</code></td></tr>
-</table>
-
-<div class="warn">
-  <strong>Token generation:</strong> Create your API token at <code>id.atlassian.com → Security → API tokens</code>. Store it as an environment variable (<code>JIRA_API_TOKEN</code>) and never commit it to source control. The agent reads it from the environment at runtime.
-</div>
-
-<h3>Example (curl — base64 encoding)</h3>
-<pre><code><span class="comment"># Generate your Authorization header value</span>
-echo -n "gicci.goh@attix.com:YOUR_API_TOKEN" | base64
-
-<span class="comment"># Use in requests</span>
-curl -s "https://tsgs.atlassian.net/rest/agile/1.0/board?name=TradeAlgo+Product" \
-  -H "Authorization: Basic {YOUR_BASE64_VALUE}" \
-  -H "Accept: application/json"</code></pre>
-
-<h2>Board Resolution</h2>
-<p>Before running any module, the agent resolves the <strong>TradeAlgo Product</strong> board ID. This value is cached for the session.</p>
-
-<div class="endpoint">
-  <span class="method get">GET</span>
-  https://tsgs.atlassian.net/rest/agile/1.0/board?name=TradeAlgo+Product
-</div>
-<pre><code>{
-  <span class="key">"values"</span>: [
-    {
-      <span class="key">"id"</span>: <span class="num">42</span>,              <span class="comment">// boardId — cache this for all subsequent calls</span>
-      <span class="key">"name"</span>: <span class="str">"TradeAlgo Product"</span>,
-      <span class="key">"type"</span>: <span class="str">"scrum"</span>        <span class="comment">// or "kanban"</span>
-    }
-  ]
-}</code></pre>
-
-<h2>Agent Execution Flow</h2>
-<ol class="step-list">
-  <li>Resolve board ID via board name lookup</li>
-  <li>Fetch active sprint metadata</li>
-  <li>Pull all sprint issues with changelogs (single paginated call)</li>
-  <li>Run JQL queries for daily movement, blockers, and velocity windows</li>
-  <li>Compute per-assignee velocity from issue changelog diffs</li>
-  <li>Derive cycle time, scope creep, and ticket age from cached issue set</li>
-  <li>Assemble all 7 module outputs into the final report JSON</li>
-</ol>
-
-<h2>Module Overview</h2>
-<div class="module-grid">
-  <div class="module-card">
-    <div class="module-name">Sprint Progress</div>
-    <div class="module-path">agile/1.0/board/{id}/sprint + issue</div>
-    <div class="module-desc">Active sprint summary: ticket counts across all 14 statuses, completion rate, and days remaining.</div>
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div class="header-brand">
+      <div class="header-logo">TA</div>
+      <div>
+        <div class="header-title">TradeAlgo Product</div>
+        <div class="header-subtitle">Daily Sprint Report</div>
+      </div>
+    </div>
+    <div class="header-meta" id="header-meta">—</div>
   </div>
-  <div class="module-card">
-    <div class="module-name">Daily Ticket Movement</div>
-    <div class="module-path">api/3/search — JQL: updated &gt;= startOfDay()</div>
-    <div class="module-desc">Tickets touched today, split into: new tickets added, forward progress, regressions, and completions.</div>
-  </div>
-  <div class="module-card">
-    <div class="module-name">Blockers &amp; Flagged Issues</div>
-    <div class="module-path">api/3/search — JQL: flagged = Impediment OR status = Blocked</div>
-    <div class="module-desc">All tickets currently blocked or carrying an impediment flag, plus stale tickets with no movement for 3+ business days.</div>
-  </div>
-  <div class="module-card">
-    <div class="module-name">Velocity (1D / 5D)</div>
-    <div class="module-path">api/3/search — JQL: status changed during window</div>
-    <div class="module-desc">Count of tickets that moved forward in the workflow over the past 1 and 5 days. New tickets excluded.</div>
-  </div>
-  <div class="module-card">
-    <div class="module-name">Assignee Velocity</div>
-    <div class="module-path">Derived from sprint issue changelogs</div>
-    <div class="module-desc">Per-assignee progress rate: assigned total, done, active, pending, and % velocity.</div>
-  </div>
-  <div class="module-card">
-    <div class="module-name">Cycle Time</div>
-    <div class="module-path">Derived from issue changelogs (Research → Done)</div>
-    <div class="module-desc">Average calendar days from first active status (Research) to Done, broken down by issue type.</div>
-  </div>
-  <div class="module-card">
-    <div class="module-name">Scope Creep &amp; Ticket Age</div>
-    <div class="module-path">Derived from sprint issue created dates + status timestamps</div>
-    <div class="module-desc">Tickets added after sprint start (scope creep), and average days issues have sat in their current status (staleness).</div>
+  <div class="sprint-bar" id="sprint-bar">
+    <span class="sprint-name" id="sprint-name">Loading...</span>
+    <div class="sprint-stats" id="sprint-stats"></div>
+    <span class="status-badge no-sprint" id="sprint-badge">—</span>
   </div>
 </div>
 
-<hr>
-
-<h2>Module Details</h2>
-
-<h3>Module 1 — Sprint Progress</h3>
-<p>Fetches the active sprint and its full issue list. Provides the top-level status snapshot across all 14 workflow stages for the current sprint.</p>
-
-<div class="endpoint">
-  <span class="method get">GET</span>
-  https://tsgs.atlassian.net/rest/agile/1.0/board/{boardId}/sprint?state=active
-</div>
-<div class="endpoint">
-  <span class="method get">GET</span>
-  https://tsgs.atlassian.net/rest/agile/1.0/sprint/{sprintId}/issue?maxResults=500&fields=status,assignee,issuetype,created,summary,priority
+<!-- Date history bar -->
+<div class="date-bar-wrap">
+  <div class="date-bar" id="date-bar">
+    <span style="font-size:0.8rem;color:#94a3b8;padding:0.3rem 0;">Loading history...</span>
+  </div>
 </div>
 
-<pre><code>{
-  <span class="key">"sprint_id"</span>: <span class="num">142</span>,
-  <span class="key">"sprint_name"</span>: <span class="str">"TAP Sprint 23"</span>,
-  <span class="key">"state"</span>: <span class="str">"active"</span>,
-  <span class="key">"start_date"</span>: <span class="str">"2026-03-10"</span>,
-  <span class="key">"end_date"</span>: <span class="str">"2026-03-24"</span>,
-  <span class="key">"days_remaining"</span>: <span class="num">8</span>,
-  <span class="key">"total_issues"</span>: <span class="num">34</span>,
-  <span class="key">"status_breakdown"</span>: {
-    <span class="key">"to_do"</span>: <span class="num">3</span>,
-    <span class="key">"research"</span>: <span class="num">2</span>,
-    <span class="key">"prd"</span>: <span class="num">1</span>,
-    <span class="key">"mockup"</span>: <span class="num">2</span>,
-    <span class="key">"data"</span>: <span class="num">1</span>,
-    <span class="key">"design"</span>: <span class="num">3</span>,
-    <span class="key">"design_approval"</span>: <span class="num">2</span>,
-    <span class="key">"dev"</span>: <span class="num">6</span>,
-    <span class="key">"llm"</span>: <span class="num">1</span>,
-    <span class="key">"qa"</span>: <span class="num">4</span>,
-    <span class="key">"staging"</span>: <span class="num">2</span>,
-    <span class="key">"prod"</span>: <span class="num">1</span>,
-    <span class="key">"gtm"</span>: <span class="num">0</span>,
-    <span class="key">"done"</span>: <span class="num">6</span>
-  },
-  <span class="key">"completion_rate"</span>: <span class="num">0.176</span>,        <span class="comment">// done / total — multiply by 100 for display</span>
-  <span class="key">"expected_completion_rate"</span>: <span class="num">0.43</span>,  <span class="comment">// ideal rate based on days elapsed in sprint</span>
-  <span class="key">"on_track"</span>: <span class="kw">false</span>                  <span class="comment">// completion_rate >= expected_completion_rate</span>
-}</code></pre>
-
-<hr>
-
-<h3>Module 2 — Daily Ticket Movement</h3>
-<p>Queries all tickets updated since <code>startOfDay()</code> (SGT timezone) and classifies each by the type of movement detected in its changelog. New tickets and progressed tickets are reported separately.</p>
-
-<div class="endpoint">
-  <span class="method get">GET</span>
-  https://tsgs.atlassian.net/rest/api/3/search?jql=board="{boardId}" AND updated >= startOfDay("Asia/Singapore") ORDER BY updated DESC&expand=changelog&fields=status,assignee,summary,priority,issuetype,created
+<!-- Main -->
+<div class="main" id="main">
+  <div class="state-box">
+    <div class="state-icon">📋</div>
+    <div class="state-title">Loading report...</div>
+  </div>
 </div>
 
-<pre><code>{
-  <span class="key">"date"</span>: <span class="str">"2026-03-16"</span>,
-  <span class="key">"timezone"</span>: <span class="str">"Asia/Singapore"</span>,
-  <span class="key">"summary"</span>: {
-    <span class="key">"total_touched"</span>: <span class="num">14</span>,
-    <span class="key">"new_tickets"</span>: <span class="num">3</span>,
-    <span class="key">"progressed"</span>: <span class="num">8</span>,
-    <span class="key">"regressed"</span>: <span class="num">1</span>,
-    <span class="key">"completed_today"</span>: <span class="num">2</span>
-  },
-  <span class="key">"new_tickets"</span>: [
-    {
-      <span class="key">"key"</span>: <span class="str">"TAP-412"</span>,
-      <span class="key">"summary"</span>: <span class="str">"Add RSI overlay to chart module"</span>,
-      <span class="key">"issue_type"</span>: <span class="str">"Story"</span>,
-      <span class="key">"priority"</span>: <span class="str">"Medium"</span>,
-      <span class="key">"assignee"</span>: <span class="str">"Jane Doe"</span>,
-      <span class="key">"created_at"</span>: <span class="str">"2026-03-16T09:14:00+08:00"</span>,
-      <span class="key">"initial_status"</span>: <span class="str">"To Do"</span>
-    }
-  ],
-  <span class="key">"progressed"</span>: [
-    {
-      <span class="key">"key"</span>: <span class="str">"TAP-398"</span>,
-      <span class="key">"summary"</span>: <span class="str">"Options flow filter performance"</span>,
-      <span class="key">"assignee"</span>: <span class="str">"John Smith"</span>,
-      <span class="key">"from_status"</span>: <span class="str">"Design Approval"</span>,
-      <span class="key">"to_status"</span>: <span class="str">"Dev"</span>,
-      <span class="key">"transitioned_at"</span>: <span class="str">"2026-03-16T11:02:00+08:00"</span>
-    }
-  ],
-  <span class="key">"regressed"</span>: [
-    {
-      <span class="key">"key"</span>: <span class="str">"TAP-371"</span>,
-      <span class="key">"summary"</span>: <span class="str">"Dark pool volume chart"</span>,
-      <span class="key">"assignee"</span>: <span class="str">"Jane Doe"</span>,
-      <span class="key">"from_status"</span>: <span class="str">"QA"</span>,
-      <span class="key">"to_status"</span>: <span class="str">"Dev"</span>,           <span class="comment">// moved backward — flagged for awareness</span>
-      <span class="key">"transitioned_at"</span>: <span class="str">"2026-03-16T14:30:00+08:00"</span>
-    }
-  ],
-  <span class="key">"completed_today"</span>: [
-    {
-      <span class="key">"key"</span>: <span class="str">"TAP-355"</span>,
-      <span class="key">"summary"</span>: <span class="str">"Mobile push notification wiring"</span>,
-      <span class="key">"assignee"</span>: <span class="str">"Alex Tan"</span>,
-      <span class="key">"completed_at"</span>: <span class="str">"2026-03-16T17:45:00+08:00"</span>
-    }
-  ]
-}</code></pre>
-
-<div class="note">
-  <strong>Classification logic:</strong> The agent reads each ticket's <code>changelog.histories</code> filtered to today (SGT). A ticket is <strong>new</strong> if <code>created</code> falls within today. A ticket is <strong>progressed</strong> if its status moved forward in the canonical workflow order (To Do → Research → PRD → … → Done). <strong>Regressed</strong> if status moved backward. A ticket can appear in multiple categories if it transitioned more than once today.
+<div class="spec-link">
+  <a href="/spec.html">View API spec →</a>
 </div>
 
-<hr>
+<script>
+  const STATUS_LABEL = { on_track: 'On Track', behind: 'Behind', warning: 'At Risk', ok: 'Healthy', critical: 'Critical' };
 
-<h3>Module 3 — Blockers &amp; Flagged Issues</h3>
-<p>Returns all tickets in the active sprint that are either explicitly blocked, carry an impediment flag, or are in an active status but have had no movement for more than <strong>3 business days</strong>.</p>
-
-<div class="endpoint">
-  <span class="method get">GET</span>
-  https://tsgs.atlassian.net/rest/api/3/search?jql=sprint in openSprints() AND project = TAP AND (flagged = Impediment OR status = "Blocked")&fields=summary,assignee,status,priority,updated,comment
-</div>
-
-<pre><code>{
-  <span class="key">"total_blockers"</span>: <span class="num">2</span>,
-  <span class="key">"items"</span>: [
-    {
-      <span class="key">"key"</span>: <span class="str">"TAP-389"</span>,
-      <span class="key">"summary"</span>: <span class="str">"API rate limit on options feed"</span>,
-      <span class="key">"assignee"</span>: <span class="str">"John Smith"</span>,
-      <span class="key">"status"</span>: <span class="str">"Dev"</span>,
-      <span class="key">"priority"</span>: <span class="str">"High"</span>,
-      <span class="key">"days_blocked"</span>: <span class="num">3</span>,       <span class="comment">// calendar days since last status change</span>
-      <span class="key">"flagged"</span>: <span class="kw">true</span>,
-      <span class="key">"last_comment"</span>: <span class="str">"Waiting on infra team to raise limit — ETA unclear"</span>,
-      <span class="key">"last_comment_by"</span>: <span class="str">"John Smith"</span>,
-      <span class="key">"last_comment_at"</span>: <span class="str">"2026-03-14T10:22:00+08:00"</span>
-    }
-  ],
-  <span class="key">"stale_tickets"</span>: [          <span class="comment">// Active status but no movement for 3+ business days</span>
-    {
-      <span class="key">"key"</span>: <span class="str">"TAP-342"</span>,
-      <span class="key">"summary"</span>: <span class="str">"Scanner column sort bug"</span>,
-      <span class="key">"assignee"</span>: <span class="str">"Alex Tan"</span>,
-      <span class="key">"status"</span>: <span class="str">"Design"</span>,
-      <span class="key">"days_since_last_move"</span>: <span class="num">5</span>,
-      <span class="key">"priority"</span>: <span class="str">"Medium"</span>
-    }
-  ]
-}</code></pre>
-
-<hr>
-
-<h3>Module 4 — Velocity (1D / 5D)</h3>
-<p>Counts tickets that moved <strong>forward</strong> in the workflow within each time window. New tickets raised during the window are explicitly excluded.</p>
-
-<div class="endpoint">
-  <span class="method get">GET</span>
-  https://tsgs.atlassian.net/rest/api/3/search?jql=project = TAP AND sprint in openSprints() AND status changed AFTER "-1d" AND NOT status changed TO "To Do"&fields=status,assignee
-</div>
-
-<pre><code>{
-  <span class="key">"as_of"</span>: <span class="str">"2026-03-16T21:00:00+08:00"</span>,
-  <span class="key">"window_1d"</span>: {
-    <span class="key">"tickets_progressed"</span>: <span class="num">8</span>,
-    <span class="key">"tickets_completed"</span>: <span class="num">2</span>      <span class="comment">// subset of progressed that reached Done</span>
-  },
-  <span class="key">"window_5d"</span>: {
-    <span class="key">"tickets_progressed"</span>: <span class="num">27</span>,
-    <span class="key">"tickets_completed"</span>: <span class="num">10</span>,
-    <span class="key">"daily_avg_progressed"</span>: <span class="num">5.4</span>   <span class="comment">// tickets_progressed / 5</span>
+  function formatDate(dateStr) {
+    // dateStr = YYYY-MM-DD
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString('en-SG', { weekday: 'short', day: 'numeric', month: 'short' });
   }
-}</code></pre>
 
-<div class="warn">
-  <strong>Exclusion rule:</strong> The JQL explicitly filters out transitions <em>to</em> <code>To Do</code> to exclude new ticket creation events. Only forward-moving transitions in the canonical workflow order count toward velocity. Regressions (e.g. QA → Dev) are excluded from both windows.
-</div>
+  function pct(n) { return `${(n * 100).toFixed(1)}%`; }
 
-<hr>
+  let allDates = [];
+  let currentDate = null;
 
-<h3>Module 5 — Assignee Velocity</h3>
-<p>Derived from the full sprint issue set (cached from Module 1). For each assignee, computes their ticket distribution across workflow stages and an overall velocity rate — defined as <code>done / total_assigned</code>. Statuses are bucketed into four stages for concise reporting.</p>
+  async function fetchJSON(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`${res.status} ${url}`);
+    return res.json();
+  }
 
-<pre><code>{
-  <span class="key">"as_of"</span>: <span class="str">"2026-03-16T21:00:00+08:00"</span>,
-  <span class="key">"assignees"</span>: [
-    {
-      <span class="key">"assignee"</span>: <span class="str">"Jane Doe"</span>,
-      <span class="key">"assigned_total"</span>: <span class="num">9</span>,
-      <span class="key">"done"</span>: <span class="num">4</span>,
-      <span class="key">"stage_breakdown"</span>: {
-        <span class="key">"discovery"</span>: <span class="num">1</span>,            <span class="comment">// To Do + Research + PRD</span>
-        <span class="key">"design"</span>: <span class="num">2</span>,               <span class="comment">// Mockup + Data + Design + Design Approval</span>
-        <span class="key">"delivery"</span>: <span class="num">2</span>,             <span class="comment">// Dev + LLM + QA + Staging + Prod + GTM</span>
-        <span class="key">"done"</span>: <span class="num">4</span>
-      },
-      <span class="key">"velocity_rate"</span>: <span class="num">0.444</span>,          <span class="comment">// done / assigned_total — multiply by 100 for %</span>
-      <span class="key">"tickets_progressed_1d"</span>: <span class="num">2</span>,
-      <span class="key">"tickets_progressed_5d"</span>: <span class="num">6</span>
-    },
-    {
-      <span class="key">"assignee"</span>: <span class="str">"John Smith"</span>,
-      <span class="key">"assigned_total"</span>: <span class="num">7</span>,
-      <span class="key">"done"</span>: <span class="num">2</span>,
-      <span class="key">"stage_breakdown"</span>: {
-        <span class="key">"discovery"</span>: <span class="num">1</span>,
-        <span class="key">"design"</span>: <span class="num">0</span>,
-        <span class="key">"delivery"</span>: <span class="num">4</span>,
-        <span class="key">"done"</span>: <span class="num">2</span>
-      },
-      <span class="key">"velocity_rate"</span>: <span class="num">0.286</span>,
-      <span class="key">"tickets_progressed_1d"</span>: <span class="num">1</span>,
-      <span class="key">"tickets_progressed_5d"</span>: <span class="num">3</span>
+  function renderDateBar(dates, active) {
+    const bar = document.getElementById('date-bar');
+    if (!dates.length) { bar.innerHTML = '<span style="font-size:0.8rem;color:#94a3b8;padding:0.3rem 0;">No reports yet</span>'; return; }
+    bar.innerHTML = dates.map(d =>
+      `<button class="date-chip${d === active ? ' active' : ''}" onclick="loadReport('${d}')">${formatDate(d)}</button>`
+    ).join('');
+  }
+
+  function renderHeader(report) {
+    const s = report.sprint;
+    document.getElementById('sprint-name').textContent = s?.name ?? 'No active sprint';
+    document.getElementById('header-meta').textContent =
+      `Generated ${new Date(report.generated_at).toLocaleString('en-SG', { timeZone: 'Asia/Singapore', hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })} SGT`;
+
+    if (s) {
+      const doneRate = pct(s.completion_rate);
+      const days = s.days_remaining;
+      document.getElementById('sprint-stats').innerHTML =
+        `<span>${s.total_issues} tickets</span><span>${doneRate} done</span><span>${days} day${days !== 1 ? 's' : ''} remaining</span>`;
+
+      const badge = document.getElementById('sprint-badge');
+      const state = s.on_track ? 'on-track' : 'behind';
+      badge.className = `status-badge ${state}`;
+      badge.textContent = s.on_track ? '✓ On Track' : '⚠ Behind';
     }
-    <span class="comment">// ... one entry per assignee with tickets in this sprint</span>
-  ]
-}</code></pre>
-
-<div class="note">
-  <strong>Stage bucketing:</strong> <code>discovery</code> = To Do + Research + PRD. <code>design</code> = Mockup + Data + Design + Design Approval. <code>delivery</code> = Dev + LLM + QA + Staging + Prod + GTM. Full per-status counts are available in the raw issue payload if needed.
-</div>
-<div class="note">
-  <strong>Unassigned tickets:</strong> Tickets without an assignee are grouped under <code>"assignee": "__unassigned__"</code> so they are visible in the report rather than silently dropped.
-</div>
-
-<hr>
-
-<h3>Module 6 — Cycle Time</h3>
-<p>Derived entirely from the sprint issue changelog cache. For each completed ticket, measures calendar days between the first <code>Research</code> transition (the first active status) and the <code>Done</code> transition. Provides a per-issue-type breakdown.</p>
-
-<pre><code>{
-  <span class="key">"sprint_cycle_time"</span>: {
-    <span class="key">"avg_days"</span>: <span class="num">11.4</span>,
-    <span class="key">"median_days"</span>: <span class="num">9.5</span>,
-    <span class="key">"sample_size"</span>: <span class="num">6</span>              <span class="comment">// tickets completed in current sprint</span>
-  },
-  <span class="key">"by_issue_type"</span>: {
-    <span class="key">"Story"</span>: { <span class="key">"avg_days"</span>: <span class="num">13.2</span>, <span class="key">"count"</span>: <span class="num">3</span> },
-    <span class="key">"Bug"</span>:   { <span class="key">"avg_days"</span>: <span class="num">4.1</span>,  <span class="key">"count"</span>: <span class="num">2</span> },
-    <span class="key">"Task"</span>:  { <span class="key">"avg_days"</span>: <span class="num">6.8</span>,  <span class="key">"count"</span>: <span class="num">1</span> }
-  },
-  <span class="key">"by_stage_segment"</span>: {              <span class="comment">// avg days spent in each stage group</span>
-    <span class="key">"discovery"</span>: <span class="num">3.1</span>,               <span class="comment">// To Do → Design Approval</span>
-    <span class="key">"design"</span>: <span class="num">4.2</span>,
-    <span class="key">"delivery"</span>: <span class="num">4.1</span>                 <span class="comment">// Dev → GTM</span>
   }
-}</code></pre>
 
-<div class="tip">
-  <strong>Why this matters:</strong> With a 14-stage workflow, cycle time by stage segment tells your boss exactly where tickets are spending the most time — discovery, design, or delivery. A rising delivery segment often signals dev or QA bottlenecks; a rising discovery segment points to unclear requirements upstream.
-</div>
+  function renderModules(modules) {
+    const main = document.getElementById('main');
+    if (!modules?.length) {
+      main.innerHTML = '<div class="state-box"><div class="state-icon">📭</div><div class="state-title">No module data in this report</div></div>';
+      return;
+    }
 
-<hr>
-
-<h3>Module 7 — Scope Creep &amp; Ticket Age</h3>
-<p>Scope creep counts tickets whose <code>created</code> date falls after the sprint start. Ticket age reports how many calendar days each in-flight ticket has been sitting in its current status — surfacing stale or stuck work.</p>
-
-<pre><code>{
-  <span class="key">"scope_creep"</span>: {
-    <span class="key">"tickets_added_post_sprint_start"</span>: <span class="num">4</span>,
-    <span class="key">"creep_rate"</span>: <span class="num">0.133</span>,               <span class="comment">// added_tickets / original_sprint_commitment</span>
-    <span class="key">"items"</span>: [
-      {
-        <span class="key">"key"</span>: <span class="str">"TAP-410"</span>,
-        <span class="key">"summary"</span>: <span class="str">"Hotfix: watchlist persistence bug"</span>,
-        <span class="key">"added_date"</span>: <span class="str">"2026-03-12"</span>,
-        <span class="key">"days_after_sprint_start"</span>: <span class="num">2</span>,
-        <span class="key">"current_status"</span>: <span class="str">"Dev"</span>
-      }
-    ]
-  },
-  <span class="key">"ticket_age"</span>: {
-    <span class="key">"avg_days_in_current_status"</span>: <span class="num">2.8</span>,
-    <span class="key">"by_status"</span>: {
-      <span class="key">"To Do"</span>: <span class="num">5.2</span>,
-      <span class="key">"Research"</span>: <span class="num">2.1</span>,
-      <span class="key">"PRD"</span>: <span class="num">3.4</span>,
-      <span class="key">"Mockup"</span>: <span class="num">1.8</span>,
-      <span class="key">"Data"</span>: <span class="num">2.0</span>,
-      <span class="key">"Design"</span>: <span class="num">3.9</span>,
-      <span class="key">"Design Approval"</span>: <span class="num">1.2</span>,
-      <span class="key">"Dev"</span>: <span class="num">4.1</span>,
-      <span class="key">"LLM"</span>: <span class="num">1.5</span>,
-      <span class="key">"QA"</span>: <span class="num">2.3</span>,
-      <span class="key">"Staging"</span>: <span class="num">0.8</span>,
-      <span class="key">"Prod"</span>: <span class="num">1.1</span>,
-      <span class="key">"GTM"</span>: <span class="num">0.5</span>
-    },
-    <span class="key">"oldest_tickets"</span>: [            <span class="comment">// top 3 longest-sitting non-Done tickets</span>
-      {
-        <span class="key">"key"</span>: <span class="str">"TAP-342"</span>,
-        <span class="key">"summary"</span>: <span class="str">"Scanner column sort bug"</span>,
-        <span class="key">"status"</span>: <span class="str">"Design"</span>,
-        <span class="key">"days_in_status"</span>: <span class="num">7</span>,
-        <span class="key">"assignee"</span>: <span class="str">"Alex Tan"</span>
-      }
-    ]
+    main.innerHTML = modules.map(mod => {
+      const dotClass = `dot-${mod.status ?? 'ok'}`;
+      const bullets = (mod.bullets ?? []).map(b => `<li>${escapeHtml(b)}</li>`).join('');
+      return `
+        <div class="module-card">
+          <div class="module-header">
+            <span class="module-title">${escapeHtml(mod.title)}</span>
+            <span class="module-status-dot ${dotClass}" title="${STATUS_LABEL[mod.status] ?? mod.status}"></span>
+          </div>
+          <div class="module-body">
+            <ul class="bullet-list">${bullets || '<li>No data for this module today.</li>'}</ul>
+          </div>
+        </div>`;
+    }).join('');
   }
-}</code></pre>
 
-<div class="tip">
-  <strong>Why this matters:</strong> A creep rate above ~15% in a sprint often signals poor sprint planning or reactive firefighting. Tickets sitting in <code>To Do</code> for 4+ days inside an active sprint indicate under-resourced commitments. The per-status age breakdown is particularly useful with a 14-stage workflow — it immediately surfaces which stage is a bottleneck this sprint.
-</div>
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
 
-<hr>
+  async function loadReport(date) {
+    currentDate = date;
+    renderDateBar(allDates, date);
 
-<h2>Field Reference</h2>
-<p>All rate and ratio values are stored as <strong>decimals</strong>. Multiply by 100 for percentage display (e.g. <code>0.444</code> → <code>44.4%</code>). All timestamps are ISO 8601 with SGT offset (<code>+08:00</code>).</p>
+    const main = document.getElementById('main');
+    main.innerHTML = '<div class="state-box"><div class="state-icon">⏳</div><div class="state-title">Loading...</div></div>';
 
-<table>
-  <tr><th>Field</th><th>Type</th><th>Description</th><th>Null when</th></tr>
-  <tr><td><code>completion_rate</code></td><td>decimal</td><td>Done issues / total sprint issues</td><td>Never (0 if none done)</td></tr>
-  <tr><td><code>expected_completion_rate</code></td><td>decimal</td><td>Linear ideal: days elapsed / sprint length</td><td>Never</td></tr>
-  <tr><td><code>on_track</code></td><td>boolean</td><td><code>completion_rate >= expected_completion_rate</code></td><td>Never</td></tr>
-  <tr><td><code>velocity_rate</code></td><td>decimal</td><td>Per assignee: done / total assigned</td><td>Never (0 if none done)</td></tr>
-  <tr><td><code>days_blocked</code></td><td>integer</td><td>Calendar days since last status transition</td><td>Never</td></tr>
-  <tr><td><code>cycle_time.avg_days</code></td><td>decimal</td><td>Mean calendar days from Research → Done</td><td><span class="null-badge">NULL</span> if no completed tickets</td></tr>
-  <tr><td><code>creep_rate</code></td><td>decimal</td><td>Tickets added post-sprint-start / original commitment count</td><td>Never (0 if no scope creep)</td></tr>
-  <tr><td><code>days_in_status</code></td><td>integer</td><td>Calendar days since last status transition for each ticket</td><td>Never</td></tr>
-  <tr><td><code>daily_avg_progressed</code></td><td>decimal</td><td>5D tickets progressed / 5</td><td>Never</td></tr>
-</table>
+    try {
+      const report = await fetchJSON(`/reports/${date}.json`);
+      renderHeader(report);
+      renderModules(report.modules);
+    } catch (err) {
+      main.innerHTML = `<div class="state-box"><div class="state-icon">⚠️</div><div class="state-title">Could not load report for ${formatDate(date)}</div><div>${err.message}</div></div>`;
+    }
+  }
 
-<h2>Data Freshness</h2>
-<table>
-  <tr><th>Module</th><th>Refresh</th><th>Notes</th></tr>
-  <tr><td>Sprint Progress</td><td>Daily, 9 PM SGT</td><td>Reflects full business day of activity up to pull time</td></tr>
-  <tr><td>Daily Ticket Movement</td><td>Daily, 9 PM SGT</td><td>Window is calendar day in SGT (midnight → 9 PM)</td></tr>
-  <tr><td>Blockers &amp; Flagged Issues</td><td>Daily, 9 PM SGT</td><td>Impediment flag and Blocked status are live in Jira</td></tr>
-  <tr><td>Velocity (1D / 5D)</td><td>Daily, 9 PM SGT</td><td>5D window is 5 calendar days, not 5 business days</td></tr>
-  <tr><td>Assignee Velocity</td><td>Daily, 9 PM SGT</td><td>Derived from sprint cache — no extra API call needed</td></tr>
-  <tr><td>Cycle Time</td><td>Daily, 9 PM SGT</td><td>Only tickets completed in the current sprint are included</td></tr>
-  <tr><td>Scope Creep &amp; Ticket Age</td><td>Daily, 9 PM SGT</td><td>Scope creep is cumulative for the sprint; age is point-in-time</td></tr>
-</table>
+  async function init() {
+    try {
+      allDates = await fetchJSON('/reports/index.json');
+    } catch {
+      allDates = [];
+    }
 
-<div class="tip">
-  <strong>Agent timing:</strong> The agent runs at 9:00 PM SGT. This captures the full Singapore business day (9 AM–6 PM SGT) plus any after-hours updates. For sprints involving team members in other timezones, the 9 PM pull still represents the most complete snapshot available before the boss's morning review.
-</div>
+    if (!allDates.length) {
+      renderDateBar([], null);
+      document.getElementById('sprint-name').textContent = 'No reports yet';
+      document.getElementById('main').innerHTML = `
+        <div class="state-box">
+          <div class="state-icon">🕐</div>
+          <div class="state-title">No reports generated yet</div>
+          <div>The first report will appear after the GitHub Actions workflow runs at 9 PM SGT on a weekday.</div>
+        </div>`;
+      return;
+    }
 
-<h2>Jira API Pagination</h2>
-<p>Jira REST API responses are paginated. The agent handles pagination automatically using <code>startAt</code> and <code>maxResults</code> query parameters. Sprint issue calls use <code>maxResults=100</code> with looping until <code>startAt + issues.length >= total</code>.</p>
+    await loadReport(allDates[0]);
+  }
 
-<pre><code><span class="comment"># Page 1</span>
-GET /rest/agile/1.0/sprint/{sprintId}/issue?startAt=0&maxResults=100
-
-<span class="comment"># Page 2 (if total > 100)</span>
-GET /rest/agile/1.0/sprint/{sprintId}/issue?startAt=100&maxResults=100</code></pre>
-
-<div class="warn">
-  <strong>Rate limits:</strong> Jira Cloud enforces a rate limit of approximately 10 requests/second per user token. The agent batches calls and re-uses the sprint issue cache across all derived modules (5, 6, 7) to minimise total API calls to ~5 per report run.
-</div>
-
+  init();
+</script>
 </body>
 </html>
