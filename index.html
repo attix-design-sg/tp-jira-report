@@ -287,21 +287,21 @@
   }
 
   function renderHeader(report) {
-    const s = report.sprint;
-    document.getElementById('sprint-name').textContent = s?.name ?? 'No active sprint';
+    const b = report.board ?? report.sprint; // support both old and new format
+    const boardName = b?.name ?? 'TP board';
+    document.getElementById('sprint-name').textContent = boardName;
     document.getElementById('header-meta').textContent =
       `Generated ${new Date(report.generated_at).toLocaleString('en-SG', { timeZone: 'Asia/Singapore', hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })} SGT`;
 
-    if (s) {
-      const doneRate = pct(s.completion_rate);
-      const days = s.days_remaining;
+    if (b) {
+      const doneRate = pct(b.completion_rate ?? 0);
+      const open = b.open_issues ?? (b.total_issues - (b.done_issues ?? 0));
       document.getElementById('sprint-stats').innerHTML =
-        `<span>${s.total_issues} tickets</span><span>${doneRate} done</span><span>${days} day${days !== 1 ? 's' : ''} remaining</span>`;
+        `<span>${b.total_issues} tickets</span><span>${doneRate} done</span><span>${open} open</span>`;
 
       const badge = document.getElementById('sprint-badge');
-      const state = s.on_track ? 'on-track' : 'behind';
-      badge.className = `status-badge ${state}`;
-      badge.textContent = s.on_track ? '✓ On Track' : '⚠ Behind';
+      badge.className = 'status-badge no-sprint';
+      badge.textContent = `${b.done_issues ?? 0} done`;
     }
   }
 

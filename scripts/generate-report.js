@@ -54,7 +54,6 @@ async function jiraFetchAll(url, itemsKey = 'issues') {
 
 // --- Date helpers ---
 function todaySGT() {
-  // Returns YYYY-MM-DD in Asia/Singapore timezone
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Singapore' });
 }
 
@@ -88,19 +87,9 @@ function getAssignee(issue) {
 }
 
 // --- Jira API calls ---
-async function resolveBoardId() {
-  console.log(`  Board ID: ${BOARD_ID} (TP board)`);
-  return BOARD_ID;
-}
-
-async function getActiveSprint(boardId) {
-  const data = await jiraFetch(`${JIRA_BASE}/rest/agile/1.0/board/${boardId}/sprint?state=active`);
-  return data.values?.[0] ?? null;
-}
-
-async function getSprintIssues(sprintId) {
+async function getBoardIssues(boardId) {
   return jiraFetchAll(
-    `${JIRA_BASE}/rest/agile/1.0/sprint/${sprintId}/issue?expand=changelog&fields=summary,status,assignee,issuetype,priority,created`,
+    `${JIRA_BASE}/rest/agile/1.0/board/${boardId}/issue?expand=changelog&fields=summary,status,assignee,issuetype,priority,created`,
     'issues'
   );
 }
@@ -115,7 +104,7 @@ async function getUpdatedTodayIssues() {
 }
 
 async function getBlockerIssues() {
-  const jql = `sprint in openSprints() AND project = ${PROJECT_KEY} AND (flagged = Impediment OR status = "Blocked")`;
+  const jql = `project = ${PROJECT_KEY} AND statusCategory != Done AND (flagged = Impediment OR status = "Blocked")`;
   return jiraFetchAll(
     `${JIRA_BASE}/rest/api/3/search?jql=${encodeURIComponent(jql)}&fields=summary,assignee,status,priority,updated,comment`,
     'issues'
@@ -123,7 +112,7 @@ async function getBlockerIssues() {
 }
 
 async function getVelocityIssues(days) {
-  const jql = `project = ${PROJECT_KEY} AND sprint in openSprints() AND status changed AFTER "-${days}d" AND NOT status changed TO "To Do"`;
+  const jql = `project = ${PROJECT_KEY} AND status changed AFTER "-${days}d" AND NOT status changed TO "To Do"`;
   return jiraFetchAll(
     `${JIRA_BASE}/rest/api/3/search?jql=${encodeURIComponent(jql)}&expand=changelog&fields=summary,status,assignee`,
     'issues'
@@ -131,7 +120,7 @@ async function getVelocityIssues(days) {
 }
 
 // --- Module processors ---
-function module1_SprintProgress(sprint, issues) {
+function module1_BoardProgress(issues) {
   const breakdown = Object.fromEntries(WORKFLOW.map(s => [s, 0]));
   for (const issue of issues) {
     const s = getStatus(issue);
@@ -140,27 +129,20 @@ function module1_SprintProgress(sprint, issues) {
 
   const total = issues.length;
   const done = breakdown['Done'] ?? 0;
+  const open = total - done;
   const completionRate = total > 0 ? done / total : 0;
 
-  const start = new Date(sprint.startDate);
-  const end   = new Date(sprint.endDate);
-  const now   = new Date();
-  const sprintLen  = Math.max(daysBetween(start, end), 1);
-  const elapsed    = Math.min(daysBetween(start, now), sprintLen);
-  const remaining  = Math.max(daysBetween(now, end), 0);
-  const expectedRate = elapsed / sprintLen;
+  const inDiscovery = [...DISCOVERY_STATUSES].reduce((n, s) => n + (breakdown[s] ?? 0), 0);
+  const inDesign    = [...DESIGN_STATUSES].reduce((n, s)    => n + (breakdown[s] ?? 0), 0);
+  const inDelivery  = [...DELIVERY_STATUSES].reduce((n, s)  => n + (breakdown[s] ?? 0), 0);
 
   return {
-    sprint_id: sprint.id,
-    sprint_name: sprint.name,
-    start_date: sprint.startDate?.slice(0, 10),
-    end_date: sprint.endDate?.slice(0, 10),
-    days_remaining: remaining,
     total_issues: total,
-    status_breakdown: breakdown,
+    open_issues: open,
+    done_issues: done,
     completion_rate: +completionRate.toFixed(3),
-    expected_completion_rate: +expectedRate.toFixed(3),
-    on_track: completionRate >= expectedRate
+    status_breakdown: breakdown,
+    stage_summary: { discovery: inDiscovery, design: inDesign, delivery: inDelivery, done }
   };
 }
 
@@ -199,7 +181,7 @@ function module2_DailyMovement(issues) {
   };
 }
 
-function module3_Blockers(blockerIssues, sprintIssues) {
+function module3_Blockers(blockerIssues, boardIssues) {
   const now = new Date();
 
   const items = blockerIssues.map(issue => {
@@ -220,7 +202,7 @@ function module3_Blockers(blockerIssues, sprintIssues) {
   });
 
   const stale = [];
-  for (const issue of sprintIssues) {
+  for (const issue of boardIssues) {
     const status = getStatus(issue);
     if (status === 'Done' || status === 'To Do') continue;
     let lastMove = null;
@@ -269,10 +251,10 @@ function module4_Velocity(issues1d, issues5d) {
   };
 }
 
-function module5_AssigneeVelocity(sprintIssues, issues1d, issues5d) {
+function module5_AssigneeVelocity(boardIssues, issues1d, issues5d) {
   const map = {};
 
-  for (const issue of sprintIssues) {
+  for (const issue of boardIssues) {
     const name = getAssignee(issue);
     const status = getStatus(issue);
     if (!map[name]) map[name] = { assigned_total: 0, done: 0, stage_breakdown: { discovery: 0, design: 0, delivery: 0, done: 0 }, tickets_progressed_1d: 0, tickets_progressed_5d: 0 };
@@ -303,11 +285,11 @@ function module5_AssigneeVelocity(sprintIssues, issues1d, issues5d) {
     .sort((a, b) => b.velocity_rate - a.velocity_rate);
 }
 
-function module6_CycleTime(sprintIssues) {
+function module6_CycleTime(boardIssues) {
   const cycleTimes = [], byType = {};
   const stageTimes = { discovery: [], design: [], delivery: [] };
 
-  for (const issue of sprintIssues) {
+  for (const issue of boardIssues) {
     if (getStatus(issue) !== 'Done') continue;
     const histories = issue.changelog?.histories ?? [];
 
@@ -331,7 +313,6 @@ function module6_CycleTime(sprintIssues) {
     if (!byType[type]) byType[type] = [];
     byType[type].push(total);
 
-    // Stage time: time between first entry into each stage bucket
     const firstInGroup = statuses => statuses.map(s => firstEntryByStatus[s]).filter(Boolean).sort()[0];
     const discEntry = firstInGroup([...DISCOVERY_STATUSES].filter(s => s !== 'To Do'));
     const dsgnEntry = firstInGroup([...DESIGN_STATUSES]);
@@ -351,23 +332,18 @@ function module6_CycleTime(sprintIssues) {
   };
 
   return {
-    sprint_cycle_time: { avg_days: avg(cycleTimes), median_days: med(cycleTimes), sample_size: cycleTimes.length },
+    cycle_time: { avg_days: avg(cycleTimes), median_days: med(cycleTimes), sample_size: cycleTimes.length },
     by_issue_type: Object.fromEntries(Object.entries(byType).map(([t, arr]) => [t, { avg_days: avg(arr), count: arr.length }])),
     by_stage_segment: { discovery: avg(stageTimes.discovery), design: avg(stageTimes.design), delivery: avg(stageTimes.delivery) }
   };
 }
 
-function module7_ScopeAndAge(sprint, sprintIssues) {
-  const sprintStart = new Date(sprint.startDate);
+function module7_TicketAge(boardIssues) {
   const now = new Date();
-
-  const addedAfterStart = sprintIssues.filter(i => new Date(i.fields?.created) > sprintStart);
-  const original = sprintIssues.length - addedAfterStart.length;
-
   const ageByStatus = {};
   const allTickets = [];
 
-  for (const issue of sprintIssues) {
+  for (const issue of boardIssues) {
     const status = getStatus(issue);
     if (status === 'Done') continue;
 
@@ -395,16 +371,9 @@ function module7_ScopeAndAge(sprint, sprintIssues) {
   const avgAge = allAges.length ? +(allAges.reduce((a, b) => a + b, 0) / allAges.length).toFixed(1) : 0;
 
   return {
-    scope_creep: {
-      tickets_added_post_sprint_start: addedAfterStart.length,
-      creep_rate: original > 0 ? +(addedAfterStart.length / original).toFixed(3) : 0,
-      items: addedAfterStart.map(i => ({ key: i.key, summary: i.fields.summary, added_date: i.fields.created?.slice(0, 10), current_status: getStatus(i) }))
-    },
-    ticket_age: {
-      avg_days_in_current_status: avgAge,
-      by_status: avgByStatus,
-      oldest_tickets: allTickets.slice(0, 3)
-    }
+    avg_days_in_current_status: avgAge,
+    by_status: avgByStatus,
+    oldest_tickets: allTickets.slice(0, 5)
   };
 }
 
@@ -412,11 +381,11 @@ function module7_ScopeAndAge(sprint, sprintIssues) {
 async function generateNarrative(data) {
   const client = new Anthropic({ apiKey: ANTHROPIC_KEY });
 
-  const prompt = `You are a product manager writing a daily sprint report for your boss. Based on the Jira data below, write a concise bullet-point summary for each of the 7 modules.
+  const prompt = `You are a product manager writing a daily board report for your boss. Based on the Jira data below, write a concise bullet-point summary for each of the 7 modules.
 
 Rules:
 - Maximum 3–4 bullets per module
-- Be specific: use ticket keys (e.g. TAP-123), names, numbers, and percentages
+- Be specific: use ticket keys (e.g. TP-123), names, numbers, and percentages
 - Prefix any item needing boss attention with "⚠️"
 - Plain, direct language — no filler phrases like "it's worth noting"
 - If data is empty or zero, summarise in 1 bullet
@@ -426,13 +395,13 @@ ${JSON.stringify(data, null, 2)}
 
 Return a JSON array (no markdown fences) — one object per module in this exact order:
 [
-  { "id": "sprint_progress",    "title": "Sprint Progress",           "status": "on_track|behind|warning|ok", "bullets": [...] },
+  { "id": "board_progress",     "title": "Board Progress",            "status": "ok|warning|behind",          "bullets": [...] },
   { "id": "daily_movement",     "title": "Daily Ticket Movement",     "status": "ok|warning|behind",          "bullets": [...] },
   { "id": "blockers",           "title": "Blockers & Flagged Issues", "status": "ok|warning|critical",        "bullets": [...] },
   { "id": "velocity",           "title": "Velocity (1D / 5D)",        "status": "ok|warning|behind",          "bullets": [...] },
   { "id": "assignee_velocity",  "title": "Assignee Velocity",         "status": "ok|warning",                 "bullets": [...] },
   { "id": "cycle_time",         "title": "Cycle Time",                "status": "ok|warning",                 "bullets": [...] },
-  { "id": "scope_creep",        "title": "Scope Creep & Ticket Age",  "status": "ok|warning|critical",        "bullets": [...] }
+  { "id": "ticket_age",         "title": "Ticket Age",                "status": "ok|warning|critical",        "bullets": [...] }
 ]`;
 
   const msg = await client.messages.create({
@@ -446,22 +415,21 @@ Return a JSON array (no markdown fences) — one object per module in this exact
 }
 
 // --- Save ---
-function saveReport(date, sprintMeta, modules) {
+function saveReport(date, boardMeta, modules) {
   const dir = path.join(__dirname, '..', 'reports');
   fs.mkdirSync(dir, { recursive: true });
 
   const report = {
     date,
     generated_at: new Date().toISOString(),
-    sprint: {
-      id: sprintMeta.sprint_id,
-      name: sprintMeta.sprint_name,
-      start_date: sprintMeta.start_date,
-      end_date: sprintMeta.end_date,
-      days_remaining: sprintMeta.days_remaining,
-      on_track: sprintMeta.on_track,
-      completion_rate: sprintMeta.completion_rate,
-      total_issues: sprintMeta.total_issues
+    board: {
+      id: BOARD_ID,
+      name: 'TP board',
+      total_issues: boardMeta.total_issues,
+      open_issues: boardMeta.open_issues,
+      done_issues: boardMeta.done_issues,
+      completion_rate: boardMeta.completion_rate,
+      stage_summary: boardMeta.stage_summary
     },
     modules
   };
@@ -488,42 +456,37 @@ async function main() {
   const date = todaySGT();
   console.log(`\nGenerating report for ${date} (SGT)...\n`);
 
-  console.log('1/8 Resolving board...');
-  const boardId = await resolveBoardId();
+  console.log('1/6 Fetching board issues...');
+  const boardIssues = await getBoardIssues(BOARD_ID);
+  console.log(`  ${boardIssues.length} issues`);
 
-  console.log('2/8 Getting active sprint...');
-  const sprint = await getActiveSprint(boardId);
-  if (!sprint) { console.warn('No active sprint — skipping.'); return; }
-  console.log(`  Sprint: ${sprint.name}`);
-
-  console.log('3/8 Fetching sprint issues...');
-  const sprintIssues = await getSprintIssues(sprint.id);
-  console.log(`  ${sprintIssues.length} issues`);
-
-  console.log('4/8 Fetching today\'s updates...');
+  console.log('2/6 Fetching today\'s updates...');
   const todayIssues = await getUpdatedTodayIssues();
+  console.log(`  ${todayIssues.length} issues updated today`);
 
-  console.log('5/8 Fetching blockers...');
+  console.log('3/6 Fetching blockers...');
   const blockerIssues = await getBlockerIssues();
+  console.log(`  ${blockerIssues.length} blockers`);
 
-  console.log('6/8 Fetching velocity windows...');
+  console.log('4/6 Fetching velocity windows...');
   const [vel1d, vel5d] = await Promise.all([getVelocityIssues(1), getVelocityIssues(5)]);
+  console.log(`  1d: ${vel1d.length}, 5d: ${vel5d.length}`);
 
-  console.log('7/8 Processing modules...');
+  console.log('5/6 Processing modules...');
   const rawData = {
-    sprint_progress:   module1_SprintProgress(sprint, sprintIssues),
+    board_progress:    module1_BoardProgress(boardIssues),
     daily_movement:    module2_DailyMovement(todayIssues),
-    blockers:          module3_Blockers(blockerIssues, sprintIssues),
+    blockers:          module3_Blockers(blockerIssues, boardIssues),
     velocity:          module4_Velocity(vel1d, vel5d),
-    assignee_velocity: module5_AssigneeVelocity(sprintIssues, vel1d, vel5d),
-    cycle_time:        module6_CycleTime(sprintIssues),
-    scope_creep:       module7_ScopeAndAge(sprint, sprintIssues)
+    assignee_velocity: module5_AssigneeVelocity(boardIssues, vel1d, vel5d),
+    cycle_time:        module6_CycleTime(boardIssues),
+    ticket_age:        module7_TicketAge(boardIssues)
   };
 
-  console.log('8/8 Generating narrative with Claude...');
+  console.log('6/6 Generating narrative with Claude...');
   const modules = await generateNarrative(rawData);
 
-  saveReport(date, rawData.sprint_progress, modules);
+  saveReport(date, rawData.board_progress, modules);
   console.log('\nDone!\n');
 }
 
