@@ -1,0 +1,78 @@
+{
+  "date": "2026-03-17",
+  "generated_at": "2026-03-16T16:42:38.695Z",
+  "board": {
+    "id": 777,
+    "name": "TP board",
+    "total_issues": 17,
+    "open_issues": 17,
+    "done_issues": 0,
+    "completion_rate": 0,
+    "stage_summary": {
+      "discovery": 8,
+      "design": 0,
+      "delivery": 0,
+      "done": 0
+    }
+  },
+  "modules": [
+    {
+      "id": "board_progress",
+      "title": "Board Progress",
+      "status": "behind",
+      "bullets": [
+        "17 total tickets, 0 done — completion rate is 0%.",
+        "8 tickets in discovery (5 RESEARCH, 1 PRD, 1 DESIGN, 1 DESIGN APPROVAL), 1 in DEV, 0 in done. Remaining 7 are To Do.",
+        "No Epic (ungrouped): 0/15 done, 9 in progress (1 DEV, 1 DESIGN, 1 DESIGN APPROVAL, 1 PRD, 5 RESEARCH).",
+        "TP-7 Newsletter Referral Program: 0/1 done, 1 in progress (RESEARCH). TP-3 Zoho Scoring Pipeline: 0/1 done, 0 in progress (To Do)."
+      ]
+    },
+    {
+      "id": "daily_movement",
+      "title": "Daily Ticket Movement",
+      "status": "behind",
+      "bullets": [
+        "⚠️ No ticket movement on 2026-03-17 — zero tickets created, progressed, regressed, or completed."
+      ]
+    },
+    {
+      "id": "blockers",
+      "title": "Blockers & Flagged Issues",
+      "status": "warning",
+      "bullets": [
+        "0 formal blockers flagged.",
+        "⚠️ 5 stale tickets identified: TP-1 SEO Infrastructural Setup (DEV, Sheryl Wee, 5 days stale), TP-2 AI Newsletter: The Signal (DESIGN, Sheryl Wee, 4 days), TP-4 SEO Content: Trading Guide Articles (DESIGN APPROVAL, Gic Ci Goh, 4 days).",
+        "⚠️ TP-7 Newsletter Referral Program is stale 4 days in PRD and unassigned. TP-5 Homepage Revamp: Products Page (RESEARCH, Sheryl Wee, 4 days stale)."
+      ]
+    },
+    {
+      "id": "velocity",
+      "title": "Velocity (1D / 5D)",
+      "status": "behind",
+      "bullets": [
+        "⚠️ 1-day velocity: 0 tickets progressed, 0 completed.",
+        "⚠️ 5-day velocity: 0 tickets progressed, 0 completed — daily average progression is 0."
+      ]
+    },
+    {
+      "id": "assignee_velocity",
+      "title": "Assignee Velocity",
+      "status": "warning",
+      "bullets": [
+        "⚠️ Sheryl Wee: 6 assigned, 0 done, 0 progressed over 1D and 5D — velocity rate 0%.",
+        "Gic Ci Goh: 2 assigned, 0 done, 0 progressed over 1D and 5D — velocity rate 0%.",
+        "⚠️ 9 tickets are unassigned (6 in discovery), with zero movement across all windows."
+      ]
+    },
+    {
+      "id": "ticket_age",
+      "title": "Ticket Age",
+      "status": "warning",
+      "bullets": [
+        "Average days in current status across all tickets: 2.8 days.",
+        "Longest-sitting statuses: DEV, DESIGN, and PRD each average 4 days in status.",
+        "⚠️ Oldest ticket: TP-3 Zoho Scoring Pipeline sitting in To Do for 5 days (unassigned). Next oldest at 4 days: TP-1, TP-2, TP-7, TP-5."
+      ]
+    }
+  ]
+}
