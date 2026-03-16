@@ -9,8 +9,8 @@ const JIRA_BASE = 'https://tsgs.atlassian.net';
 const JIRA_EMAIL = process.env.JIRA_EMAIL || 'gicci.goh@attix.com';
 const JIRA_TOKEN = process.env.JIRA_API_TOKEN;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
-const BOARD_NAME = 'TradeAlgo Product';
-const PROJECT_KEY = 'TAP';
+const BOARD_ID = 777;        // TP board (TradeAlgo Product)
+const PROJECT_KEY = 'TP';
 
 const WORKFLOW = ['To Do','Research','PRD','Mockup','Data','Design','Design Approval','Dev','LLM','QA','Staging','Prod','GTM','Done'];
 const WORKFLOW_IDX = Object.fromEntries(WORKFLOW.map((s, i) => [s, i]));
@@ -89,18 +89,8 @@ function getAssignee(issue) {
 
 // --- Jira API calls ---
 async function resolveBoardId() {
-  const data = await jiraFetch(`${JIRA_BASE}/rest/agile/1.0/board?name=${encodeURIComponent(BOARD_NAME)}`);
-  if (data.values?.length) {
-    const board = data.values[0];
-    console.log(`  Board ID: ${board.id}`);
-    return board.id;
-  }
-
-  // Not found — list all boards so we can see the exact name
-  console.error(`Board "${BOARD_NAME}" not found. Listing all accessible boards:\n`);
-  const all = await jiraFetch(`${JIRA_BASE}/rest/agile/1.0/board?maxResults=50`);
-  const names = (all.values ?? []).map(b => `  [${b.id}] ${b.name} (${b.type})`).join('\n');
-  throw new Error(`Board "${BOARD_NAME}" not found.\n\nAvailable boards:\n${names || '  (none accessible)'}`);
+  console.log(`  Board ID: ${BOARD_ID} (TP board)`);
+  return BOARD_ID;
 }
 
 async function getActiveSprint(boardId) {
