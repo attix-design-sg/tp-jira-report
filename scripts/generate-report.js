@@ -35,6 +35,19 @@ async function jiraFetch(url) {
   return res.json();
 }
 
+async function jiraPost(url, body) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: authHeader(), Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Jira ${res.status} ${url}\n${text}`);
+  }
+  return res.json();
+}
+
 async function jiraFetchAll(url, itemsKey = 'issues') {
   let startAt = 0;
   let total = Infinity;
@@ -48,6 +61,22 @@ async function jiraFetchAll(url, itemsKey = 'issues') {
     total = data.total ?? items.length;
     startAt += items.length;
     if (items.length < 100) break;
+  }
+  return all;
+}
+
+async function jiraSearchAll(jql, fields, expand = []) {
+  const all = [];
+  const baseUrl = `${JIRA_BASE}/rest/api/3/search/jql${expand.length ? '?expand=' + expand.join(',') : ''}`;
+  let nextPageToken = undefined;
+  while (true) {
+    const body = { jql, fields, maxResults: 100 };
+    if (nextPageToken) body.nextPageToken = nextPageToken;
+    const data = await jiraPost(baseUrl, body);
+    const items = data.issues ?? [];
+    all.push(...items);
+    if (!data.nextPageToken || items.length < 100) break;
+    nextPageToken = data.nextPageToken;
   }
   return all;
 }
@@ -86,10 +115,18 @@ function getAssignee(issue) {
   return issue.fields?.assignee?.displayName ?? '__unassigned__';
 }
 
+function getEpic(issue) {
+  const parent = issue.fields?.parent;
+  if (parent?.fields?.issuetype?.name === 'Epic') {
+    return { key: parent.key, name: parent.fields.summary };
+  }
+  return null;
+}
+
 // --- Jira API calls ---
 async function getBoardIssues(boardId) {
   return jiraFetchAll(
-    `${JIRA_BASE}/rest/agile/1.0/board/${boardId}/issue?expand=changelog&fields=summary,status,assignee,issuetype,priority,created`,
+    `${JIRA_BASE}/rest/agile/1.0/board/${boardId}/issue?expand=changelog&fields=summary,status,assignee,issuetype,priority,created,parent`,
     'issues'
   );
 }
@@ -97,26 +134,17 @@ async function getBoardIssues(boardId) {
 async function getUpdatedTodayIssues() {
   const today = todaySGT();
   const jql = `project = ${PROJECT_KEY} AND updated >= "${today}" ORDER BY updated DESC`;
-  return jiraFetchAll(
-    `${JIRA_BASE}/rest/api/3/search?jql=${encodeURIComponent(jql)}&expand=changelog&fields=summary,status,assignee,issuetype,priority,created`,
-    'issues'
-  );
+  return jiraSearchAll(jql, ['summary','status','assignee','issuetype','priority','created','parent'], ['changelog']);
 }
 
 async function getBlockerIssues() {
   const jql = `project = ${PROJECT_KEY} AND statusCategory != Done AND (flagged = Impediment OR status = "Blocked")`;
-  return jiraFetchAll(
-    `${JIRA_BASE}/rest/api/3/search?jql=${encodeURIComponent(jql)}&fields=summary,assignee,status,priority,updated,comment`,
-    'issues'
-  );
+  return jiraSearchAll(jql, ['summary','assignee','status','priority','updated','comment']);
 }
 
 async function getVelocityIssues(days) {
   const jql = `project = ${PROJECT_KEY} AND status changed AFTER "-${days}d" AND NOT status changed TO "To Do"`;
-  return jiraFetchAll(
-    `${JIRA_BASE}/rest/api/3/search?jql=${encodeURIComponent(jql)}&expand=changelog&fields=summary,status,assignee`,
-    'issues'
-  );
+  return jiraSearchAll(jql, ['summary','status','assignee'], ['changelog']);
 }
 
 // --- Module processors ---
@@ -136,13 +164,29 @@ function module1_BoardProgress(issues) {
   const inDesign    = [...DESIGN_STATUSES].reduce((n, s)    => n + (breakdown[s] ?? 0), 0);
   const inDelivery  = [...DELIVERY_STATUSES].reduce((n, s)  => n + (breakdown[s] ?? 0), 0);
 
+  // Group by epic
+  const epicMap = {};
+  for (const issue of issues) {
+    const epic = getEpic(issue);
+    const epicKey = epic ? epic.key : '__no_epic__';
+    const epicName = epic ? `${epic.key} ${epic.name}` : 'No Epic';
+    if (!epicMap[epicKey]) epicMap[epicKey] = { epic: epicName, total: 0, done: 0, in_progress: 0, status_breakdown: {} };
+    const e = epicMap[epicKey];
+    const status = getStatus(issue);
+    e.total++;
+    if (status === 'Done') e.done++;
+    else if (status !== 'To Do') e.in_progress++;
+    e.status_breakdown[status] = (e.status_breakdown[status] ?? 0) + 1;
+  }
+  const by_epic = Object.values(epicMap).sort((a, b) => b.in_progress - a.in_progress);
+
   return {
     total_issues: total,
     open_issues: open,
     done_issues: done,
     completion_rate: +completionRate.toFixed(3),
-    status_breakdown: breakdown,
-    stage_summary: { discovery: inDiscovery, design: inDesign, delivery: inDelivery, done }
+    stage_summary: { discovery: inDiscovery, design: inDesign, delivery: inDelivery, done },
+    by_epic
   };
 }
 
@@ -160,7 +204,8 @@ function module2_DailyMovement(issues) {
       if (history.created?.slice(0, 10) !== today) continue;
       for (const item of (history.items ?? [])) {
         if (item.field !== 'status') continue;
-        const entry = { key: issue.key, summary: issue.fields.summary, assignee: getAssignee(issue), from_status: item.fromString, to_status: item.toString, at: history.created };
+        const epic = getEpic(issue);
+        const entry = { key: issue.key, summary: issue.fields.summary, epic: epic ? `${epic.key} ${epic.name}` : null, assignee: getAssignee(issue), from_status: item.fromString, to_status: item.toString, at: history.created };
         if (isForward(item.fromString, item.toString)) {
           progressed.push(entry);
           if (item.toString === 'Done') completedToday.push({ key: issue.key, summary: issue.fields.summary, assignee: getAssignee(issue), at: history.created });
@@ -285,60 +330,8 @@ function module5_AssigneeVelocity(boardIssues, issues1d, issues5d) {
     .sort((a, b) => b.velocity_rate - a.velocity_rate);
 }
 
-function module6_CycleTime(boardIssues) {
-  const cycleTimes = [], byType = {};
-  const stageTimes = { discovery: [], design: [], delivery: [] };
 
-  for (const issue of boardIssues) {
-    if (getStatus(issue) !== 'Done') continue;
-    const histories = issue.changelog?.histories ?? [];
-
-    let firstActiveDate = null, doneDate = null;
-    const firstEntryByStatus = {};
-
-    for (const h of histories) {
-      for (const item of (h.items ?? [])) {
-        if (item.field !== 'status') continue;
-        if (!firstEntryByStatus[item.toString]) firstEntryByStatus[item.toString] = h.created;
-        if (item.toString !== 'To Do' && !firstActiveDate) firstActiveDate = h.created;
-        if (item.toString === 'Done') doneDate = h.created;
-      }
-    }
-
-    if (!firstActiveDate || !doneDate) continue;
-
-    const total = daysBetween(firstActiveDate, doneDate);
-    cycleTimes.push(total);
-    const type = issue.fields?.issuetype?.name ?? 'Unknown';
-    if (!byType[type]) byType[type] = [];
-    byType[type].push(total);
-
-    const firstInGroup = statuses => statuses.map(s => firstEntryByStatus[s]).filter(Boolean).sort()[0];
-    const discEntry = firstInGroup([...DISCOVERY_STATUSES].filter(s => s !== 'To Do'));
-    const dsgnEntry = firstInGroup([...DESIGN_STATUSES]);
-    const dlvEntry  = firstInGroup([...DELIVERY_STATUSES]);
-
-    if (discEntry && dsgnEntry) stageTimes.discovery.push(daysBetween(discEntry, dsgnEntry));
-    if (dsgnEntry && dlvEntry)  stageTimes.design.push(daysBetween(dsgnEntry, dlvEntry));
-    if (dlvEntry && doneDate)   stageTimes.delivery.push(daysBetween(dlvEntry, doneDate));
-  }
-
-  const avg = arr => arr.length ? +(arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : null;
-  const med = arr => {
-    if (!arr.length) return null;
-    const s = [...arr].sort((a, b) => a - b);
-    const m = Math.floor(s.length / 2);
-    return s.length % 2 ? s[m] : +((s[m - 1] + s[m]) / 2).toFixed(1);
-  };
-
-  return {
-    cycle_time: { avg_days: avg(cycleTimes), median_days: med(cycleTimes), sample_size: cycleTimes.length },
-    by_issue_type: Object.fromEntries(Object.entries(byType).map(([t, arr]) => [t, { avg_days: avg(arr), count: arr.length }])),
-    by_stage_segment: { discovery: avg(stageTimes.discovery), design: avg(stageTimes.design), delivery: avg(stageTimes.delivery) }
-  };
-}
-
-function module7_TicketAge(boardIssues) {
+function module6_TicketAge(boardIssues) {
   const now = new Date();
   const ageByStatus = {};
   const allTickets = [];
@@ -381,27 +374,29 @@ function module7_TicketAge(boardIssues) {
 async function generateNarrative(data) {
   const client = new Anthropic({ apiKey: ANTHROPIC_KEY });
 
-  const prompt = `You are a product manager writing a daily board report for your boss. Based on the Jira data below, write a concise bullet-point summary for each of the 7 modules.
+  const prompt = `You are a product manager writing a daily board report for your boss. Based on the Jira data below, write a concise bullet-point summary for each of the 6 modules.
 
 Rules:
 - Maximum 3–4 bullets per module
 - Be specific: use ticket keys (e.g. TP-123), names, numbers, and percentages
 - Prefix any item needing boss attention with "⚠️"
 - Plain, direct language — no filler phrases like "it's worth noting"
+- Report facts only — no recommendations, insights, predictions, or actionable suggestions
 - If data is empty or zero, summarise in 1 bullet
+- For Board Progress: if any epics have tickets in progress or done, list each epic by name with its done/total count (e.g. "TP-5 Epic Name: 2/4 done, 1 in progress"). If no movement at all, one bullet is fine.
+- For Daily Ticket Movement: if any tickets moved, group them by epic. For each epic, list each ticket that moved with its key, name, and status transition (e.g. "TP-5 Epic Name → [TP-12] Ticket name: Design → Dev"). If no movement, one bullet is fine.
 
 Data:
 ${JSON.stringify(data, null, 2)}
 
 Return a JSON array (no markdown fences) — one object per module in this exact order:
 [
-  { "id": "board_progress",     "title": "Board Progress",            "status": "ok|warning|behind",          "bullets": [...] },
-  { "id": "daily_movement",     "title": "Daily Ticket Movement",     "status": "ok|warning|behind",          "bullets": [...] },
-  { "id": "blockers",           "title": "Blockers & Flagged Issues", "status": "ok|warning|critical",        "bullets": [...] },
-  { "id": "velocity",           "title": "Velocity (1D / 5D)",        "status": "ok|warning|behind",          "bullets": [...] },
-  { "id": "assignee_velocity",  "title": "Assignee Velocity",         "status": "ok|warning",                 "bullets": [...] },
-  { "id": "cycle_time",         "title": "Cycle Time",                "status": "ok|warning",                 "bullets": [...] },
-  { "id": "ticket_age",         "title": "Ticket Age",                "status": "ok|warning|critical",        "bullets": [...] }
+  { "id": "board_progress",     "title": "Board Progress",            "status": "ok|warning|behind",   "bullets": [...] },
+  { "id": "daily_movement",     "title": "Daily Ticket Movement",     "status": "ok|warning|behind",   "bullets": [...] },
+  { "id": "blockers",           "title": "Blockers & Flagged Issues", "status": "ok|warning|critical", "bullets": [...] },
+  { "id": "velocity",           "title": "Velocity (1D / 5D)",        "status": "ok|warning|behind",   "bullets": [...] },
+  { "id": "assignee_velocity",  "title": "Assignee Velocity",         "status": "ok|warning",          "bullets": [...] },
+  { "id": "ticket_age",         "title": "Ticket Age",                "status": "ok|warning|critical", "bullets": [...] }
 ]`;
 
   const msg = await client.messages.create({
@@ -479,8 +474,7 @@ async function main() {
     blockers:          module3_Blockers(blockerIssues, boardIssues),
     velocity:          module4_Velocity(vel1d, vel5d),
     assignee_velocity: module5_AssigneeVelocity(boardIssues, vel1d, vel5d),
-    cycle_time:        module6_CycleTime(boardIssues),
-    ticket_age:        module7_TicketAge(boardIssues)
+    ticket_age:        module6_TicketAge(boardIssues)
   };
 
   console.log('6/6 Generating narrative with Claude...');
