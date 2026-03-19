@@ -1,13 +1,13 @@
 {
   "date": "2026-03-19",
-  "generated_at": "2026-03-18T16:40:27.428Z",
+  "generated_at": "2026-03-19T15:39:44.027Z",
   "board": {
     "id": 777,
     "name": "TP board",
-    "total_issues": 18,
-    "open_issues": 17,
+    "total_issues": 19,
+    "open_issues": 18,
     "done_issues": 1,
-    "completion_rate": 0.056,
+    "completion_rate": 0.053,
     "stage_summary": {
       "discovery": 2,
       "design": 0,
@@ -21,10 +21,10 @@
       "title": "Board Progress",
       "status": "behind",
       "bullets": [
-        "18 total tickets — 1 done, 17 open. Overall completion rate: 5.6%.",
+        "Board completion rate is 5.3% — 1 of 19 tickets done, 18 open.",
         "TP-8 Fincera Infrastructural Setup: 1/1 done.",
         "TP-3 Zoho Scoring Pipeline: 0/1 done, 1 in progress (RESEARCH).",
-        "TP-7 Newsletter Referral Program: 0/1 done, 1 in progress (RESEARCH). 15 tickets have no epic assigned (1 DEV, 2 DESIGN APPROVAL, 2 PRD, 6 RESEARCH, 4 NOT STARTED)."
+        "⚠️ 16 tickets have no epic assigned; statuses spread across RESEARCH (6), NOT STARTED (4), DESIGN APPROVAL (2), PRD (2), DESIGN (1), DEV (1)."
       ]
     },
     {
@@ -32,7 +32,7 @@
       "title": "Daily Ticket Movement",
       "status": "behind",
       "bullets": [
-        "⚠️ Zero ticket movement on 2026-03-19 — no new tickets, no progressions, no regressions, no completions."
+        "⚠️ No tickets progressed, regressed, or completed on 2026-03-19. 3 tickets were touched but none changed status."
       ]
     },
     {
@@ -40,8 +40,8 @@
       "title": "Blockers & Flagged Issues",
       "status": "critical",
       "bullets": [
-        "No formal blockers flagged.",
-        "⚠️ 5 stale tickets with no movement for 6–7 days: TP-1 SEO Infrastructural Setup (DEV, 7 days, Sheryl Wee), TP-2 AI Newsletter: The Signal (DESIGN APPROVAL, 6 days, Sheryl Wee), TP-4 SEO Content: Trading Guide Articles (DESIGN APPROVAL, 6 days, Gic Ci Goh), TP-7 Newsletter Referral Program (PRD, 6 days, Sheryl Wee), TP-5 Homepage Revamp: Products Page (PRD, 6 days, Sheryl Wee).",
+        "0 formal blockers flagged.",
+        "⚠️ 5 stale tickets with no movement for 7–8 days: TP-1 SEO Infrastructural Setup (DEV, 8 days, Sheryl Wee), TP-2 AI Newsletter: The Signal (DESIGN APPROVAL, 7 days, Sheryl Wee), TP-4 SEO Content: Trading Guide Articles (DESIGN APPROVAL, 7 days, Gic Ci Goh), TP-7 Newsletter Referral Program (PRD, 7 days, Sheryl Wee), TP-5 Homepage Revamp: Products Page (PRD, 7 days, Sheryl Wee).",
         "⚠️ 4 of the 5 stale tickets are assigned to Sheryl Wee."
       ]
     },
@@ -51,7 +51,7 @@
       "status": "behind",
       "bullets": [
         "⚠️ 1-day velocity: 0 tickets progressed, 0 completed.",
-        "⚠️ 5-day velocity: 0 tickets progressed, 0 completed. Daily average progressed over 5 days is 0."
+        "⚠️ 5-day velocity: 0 tickets progressed, 0 completed; daily average progression is 0."
       ]
     },
     {
@@ -59,17 +59,17 @@
       "title": "Assignee Velocity",
       "status": "warning",
       "bullets": [
-        "⚠️ Sheryl Wee: 12 assigned, 1 done (8.3% velocity rate). 0 tickets progressed in both 1-day and 5-day windows. 2 in discovery, 0 in design/delivery.",
-        "⚠️ Gic Ci Goh: 6 assigned, 0 done (0% velocity rate). 0 tickets progressed in both 1-day and 5-day windows. All 6 tickets sit outside tracked stages."
+        "⚠️ Sheryl Wee: 12 assigned, 1 done (8.3% velocity rate), 0 tickets progressed in the last 1 and 5 days.",
+        "⚠️ Gic Ci Goh: 7 assigned, 0 done (0% velocity rate), 0 tickets progressed in the last 1 and 5 days."
       ]
     },
     {
       "id": "ticket_age",
       "title": "Ticket Age",
-      "status": "warning",
+      "status": "critical",
       "bullets": [
-        "Average age in current status across the board: 2.3 days. DEV status averages 6 days; PRD averages 3 days; RESEARCH averages 3.1 days.",
-        "⚠️ 5 oldest tickets all at 6 days in status: TP-1 SEO Infrastructural Setup (DEV, Sheryl Wee), TP-7 Newsletter Referral Program (PRD, Sheryl Wee), TP-8 Fincera Infrastructural Setup (RESEARCH, Sheryl Wee), TP-9 Apex Integration (RESEARCH, Sheryl Wee), TP-13 Fincera Onboarding Setup (RESEARCH, Sheryl Wee).",
+        "Average age in current status across all tickets: 2.9 days. DEV is the oldest status at 7 days avg, followed by PRD at 4 days.",
+        "⚠️ 5 oldest tickets all at 7 days in status: TP-1 SEO Infrastructural Setup (DEV, Sheryl Wee), TP-7 Newsletter Referral Program (PRD, Sheryl Wee), TP-8 Fincera Infrastructural Setup (RESEARCH, Sheryl Wee), TP-9 Apex Integration (RESEARCH, Sheryl Wee), TP-13 Fincera Onboarding Setup (RESEARCH, Sheryl Wee).",
         "All 5 oldest tickets are assigned to Sheryl Wee."
       ]
     }
