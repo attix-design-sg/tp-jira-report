@@ -1,0 +1,79 @@
+{
+  "date": "2026-03-20",
+  "generated_at": "2026-03-20T15:29:00.118Z",
+  "board": {
+    "id": 777,
+    "name": "TP board",
+    "total_issues": 22,
+    "open_issues": 20,
+    "done_issues": 2,
+    "completion_rate": 0.091,
+    "stage_summary": {
+      "discovery": 2,
+      "design": 0,
+      "delivery": 0,
+      "done": 2
+    }
+  },
+  "modules": [
+    {
+      "id": "board_progress",
+      "title": "Board Progress",
+      "status": "behind",
+      "bullets": [
+        "22 total tickets: 2 done, 20 open — completion rate at 9.1%",
+        "TP-8 Fincera Infrastructural Setup: 1/1 done. TP-28 XFN Support: 1/1 done.",
+        "TP-3 Zoho Scoring Pipeline: 0/1 done, 1 in progress (RESEARCH). TP-7 Newsletter Referral Program: 0/1 done, 1 in progress (RESEARCH).",
+        "⚠️ 18 tickets have no epic assigned — 5 NOT STARTED, 7 in RESEARCH, 2 in PRD, 1 in DESIGN, 1 in DESIGN APPROVAL, 1 in Design Handoff, 1 in DEV"
+      ]
+    },
+    {
+      "id": "daily_movement",
+      "title": "Daily Ticket Movement",
+      "status": "warning",
+      "bullets": [
+        "0 tickets progressed, 0 regressed, 0 completed on 2026-03-20",
+        "3 new tickets created: [TP-30] Newsletter Broker Dealer (Sheryl Wee, RESEARCH), [TP-28] XFN Support (unassigned, NOT STARTED), [TP-29] Sales Funding Pitch Deck Support (unassigned, Done)",
+        "⚠️ No forward movement on any existing ticket today"
+      ]
+    },
+    {
+      "id": "blockers",
+      "title": "Blockers & Flagged Issues",
+      "status": "critical",
+      "bullets": [
+        "0 flagged blockers currently",
+        "⚠️ 5 stale tickets with no movement for 8–9 days: [TP-1] SEO Infrastructural Setup (Gic Ci Goh, DEV, 9d), [TP-2] AI Newsletter: The Signal (Sheryl Wee, DESIGN APPROVAL, 8d), [TP-4] SEO Content: Trading Guide Articles (Gic Ci Goh, Design Handoff, 8d), [TP-5] Homepage Revamp: Products Page (Sheryl Wee, PRD, 8d), [TP-7] Newsletter Referral Program (Sheryl Wee, PRD, 8d)"
+      ]
+    },
+    {
+      "id": "velocity",
+      "title": "Velocity (1D / 5D)",
+      "status": "behind",
+      "bullets": [
+        "⚠️ 1-day velocity: 0 tickets progressed, 0 completed",
+        "⚠️ 5-day velocity: 0 tickets progressed, 0 completed — daily average progressed is 0"
+      ]
+    },
+    {
+      "id": "assignee_velocity",
+      "title": "Assignee Velocity",
+      "status": "warning",
+      "bullets": [
+        "⚠️ Gic Ci Goh: 9 assigned, 0 done (0% completion), 0 tickets progressed in last 5 days",
+        "Sheryl Wee: 11 assigned, 1 done (9.1% completion), 0 tickets progressed in last 5 days",
+        "Unassigned: 2 tickets, 1 done (50% completion) — includes [TP-29] which was created as Done"
+      ]
+    },
+    {
+      "id": "ticket_age",
+      "title": "Ticket Age",
+      "status": "warning",
+      "bullets": [
+        "Average days in current status across all tickets: 3.4 days",
+        "Longest-sitting statuses: DEV avg 8 days, PRD avg 5 days, RESEARCH avg 4.2 days",
+        "⚠️ 5 oldest tickets all at 8 days in status: [TP-1] SEO Infrastructural Setup (DEV, Gic Ci Goh), [TP-7] Newsletter Referral Program (PRD, Sheryl Wee), [TP-8] Fincera Infrastructural Setup (RESEARCH, Sheryl Wee), [TP-9] Apex Integration (RESEARCH, Sheryl Wee), [TP-13] Fincera Onboarding Setup (RESEARCH, Sheryl Wee)"
+      ]
+    }
+  ]
+}
