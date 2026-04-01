@@ -1,0 +1,78 @@
+{
+  "date": "2026-04-02",
+  "generated_at": "2026-04-01T16:15:20.023Z",
+  "board": {
+    "id": 777,
+    "name": "TP board",
+    "total_issues": 25,
+    "open_issues": 20,
+    "done_issues": 5,
+    "completion_rate": 0.2,
+    "stage_summary": {
+      "discovery": 2,
+      "design": 0,
+      "delivery": 1,
+      "done": 5
+    }
+  },
+  "modules": [
+    {
+      "id": "board_progress",
+      "title": "Board Progress",
+      "status": "behind",
+      "bullets": [
+        "Board is 20% complete: 5 done, 20 open out of 25 total. Stage breakdown: 2 in discovery, 1 in delivery, 5 done.",
+        "No Epic: 2/20 done, 18 in progress (7 RESEARCH, 4 NOT STARTED, 3 DESIGN, 2 PRD, 1 QA, 1 Design Handoff).",
+        "TP-28 XFN Support: 2/2 done. TP-8 Fincera Infrastructural Setup: 1/1 done.",
+        "TP-7 Newsletter Referral Program: 0/1 done, 1 in progress (RESEARCH). TP-31 Fanbasis BNPL: 0/1 done, 1 in progress (RESEARCH)."
+      ]
+    },
+    {
+      "id": "daily_movement",
+      "title": "Daily Ticket Movement",
+      "status": "behind",
+      "bullets": [
+        "⚠️ Zero ticket movement on 2026-04-02: no tickets created, progressed, regressed, or completed."
+      ]
+    },
+    {
+      "id": "blockers",
+      "title": "Blockers & Flagged Issues",
+      "status": "critical",
+      "bullets": [
+        "No formal blockers flagged.",
+        "⚠️ 5 stale tickets with no movement for 19–21 days: TP-1 (QA, Gic Ci Goh, 21d), TP-4 (Design Handoff, Gic Ci Goh, 20d), TP-5 (PRD, Sheryl Wee, 20d), TP-8 (RESEARCH, Sheryl Wee, 20d), TP-9 (RESEARCH, Sheryl Wee, 20d).",
+        "⚠️ Gic Ci Goh owns 2 of the 5 stale tickets; Sheryl Wee owns 3."
+      ]
+    },
+    {
+      "id": "velocity",
+      "title": "Velocity (1D / 5D)",
+      "status": "behind",
+      "bullets": [
+        "⚠️ 1-day velocity: 0 tickets progressed, 0 completed.",
+        "⚠️ 5-day velocity: 0 tickets progressed, 0 completed, 0.0 daily average. The board has been completely static for the past 5 working days."
+      ]
+    },
+    {
+      "id": "assignee_velocity",
+      "title": "Assignee Velocity",
+      "status": "warning",
+      "bullets": [
+        "Sheryl Wee: 15 assigned, 3 done (20% velocity rate), 2 in discovery. 0 tickets progressed in last 1d and 5d.",
+        "⚠️ Gic Ci Goh: 8 assigned, 0 done (0% velocity rate), 1 in delivery (QA). 0 tickets progressed in last 1d and 5d.",
+        "Unassigned: 2 tickets, both done (100% velocity rate)."
+      ]
+    },
+    {
+      "id": "ticket_age",
+      "title": "Ticket Age",
+      "status": "critical",
+      "bullets": [
+        "Average days in current status across the board: 12.8 days. RESEARCH is the worst at 15.2 days avg, followed by NOT STARTED at 14.0 days.",
+        "⚠️ 5 oldest tickets all stuck 14–20 days: TP-8 Fincera Infrastructural Setup (20d, RESEARCH, Sheryl Wee), TP-9 Apex Integration (20d, RESEARCH, Sheryl Wee), TP-13 Fincera Onboarding Setup (20d, RESEARCH, Sheryl Wee), TP-18 Referral System Competitor Research (19d, RESEARCH, Sheryl Wee), TP-3 Zoho Scoring Pipeline (14d, RESEARCH, Gic Ci Goh).",
+        "⚠️ Sheryl Wee accounts for 4 of the 5 oldest tickets, all in RESEARCH for 19–20 days."
+      ]
+    }
+  ]
+}
